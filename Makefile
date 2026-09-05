@@ -1,5 +1,5 @@
 PYTHON ?= python3.11
-BACKEND_DIR := backend
+SERVER_DIR := server
 VENV_DIR := .venv
 VENV_PYTHON := $(VENV_DIR)/bin/python
 VENV_PIP := $(VENV_PYTHON) -m pip
@@ -14,27 +14,27 @@ VENV_PYTEST := $(VENV_DIR)/bin/pytest
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 	$(VENV_PIP) install --upgrade pip
-	cd $(BACKEND_DIR) && ../$(VENV_PYTHON) -m pip install -e .[dev]
+	cd $(SERVER_DIR) && ../$(VENV_PYTHON) -m pip install -e .[dev]
 
 install: venv
 
 run-api:
-	cd $(BACKEND_DIR) && ../$(VENV_UVICORN) app.main:app --reload
+	cd $(SERVER_DIR) && ../$(VENV_UVICORN) app.main:app --reload
 
 run-worker:
-	cd $(BACKEND_DIR) && ../$(VENV_CELERY) -A app.worker.celery_app.celery_app worker --loglevel=info
+	cd $(SERVER_DIR) && ../$(VENV_CELERY) -A app.worker.celery_app.celery_app worker --loglevel=info
 
 test:
-	cd $(BACKEND_DIR) && ../$(VENV_PYTEST)
+	cd $(SERVER_DIR) && ../$(VENV_PYTEST)
 
 lint:
-	cd $(BACKEND_DIR) && ../$(VENV_PYTHON) -m compileall app tests
+	cd $(SERVER_DIR) && ../$(VENV_PYTHON) -m compileall app tests
 
 typecheck:
-	cd $(BACKEND_DIR) && ../$(VENV_MYPY) app tests
+	cd $(SERVER_DIR) && ../$(VENV_MYPY) app tests
 
 migrate-up:
-	cd $(BACKEND_DIR) && ../$(VENV_ALEMBIC) upgrade head
+	cd $(SERVER_DIR) && ../$(VENV_ALEMBIC) upgrade head
 
 docker-up:
 	docker compose up --build

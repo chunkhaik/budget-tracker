@@ -21,7 +21,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/backend.Dockerfile
+      dockerfile: docker/server.Dockerfile
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
@@ -34,14 +34,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
+      - ./server/app:/app/app
+      - ./server/alembic:/app/alembic
+      - ./server/alembic.ini:/app/alembic.ini
 
   worker:
     build:
       context: .
-      dockerfile: docker/backend.Dockerfile
+      dockerfile: docker/server.Dockerfile
     command: celery -A app.worker.celery_app.celery_app worker --loglevel=info
     env_file:
       - .env
@@ -52,9 +52,9 @@ services:
       - postgres
       - rabbitmq
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
+      - ./server/app:/app/app
+      - ./server/alembic:/app/alembic
+      - ./server/alembic.ini:/app/alembic.ini
 
   nginx:
     image: nginx:1.27-alpine

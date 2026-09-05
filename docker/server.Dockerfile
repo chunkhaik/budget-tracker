@@ -5,11 +5,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-COPY backend/README.md ./README.md
-COPY backend/pyproject.toml ./pyproject.toml
-COPY backend/app ./app
-COPY backend/alembic ./alembic
-COPY backend/alembic.ini ./alembic.ini
+COPY server/README.md ./README.md
+COPY server/pyproject.toml ./pyproject.toml
+COPY server/app ./app
+COPY server/alembic ./alembic
+COPY server/alembic.ini ./alembic.ini
 
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
 

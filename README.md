@@ -13,7 +13,7 @@ Current focus:
 
 Current repo status:
 - monorepo shape is in place
-- only the backend runtime is implemented today
+- only the server runtime is implemented today
 - docs and ops scaffolding already exist for local dev and future deployment
 
 ## Project description
@@ -41,11 +41,11 @@ This repository is a small monorepo today: one implemented product runtime, plus
 ```text
 budget-tracker/
 ├── README.md                  # repo-level overview, layout, architecture, onboarding
-├── Makefile                   # root dev commands for backend and local stack
+├── Makefile                   # root dev commands for server and local stack
 ├── docker-compose.yml         # local multi-service stack: postgres, rabbitmq, api, worker, nginx
-├── backend/                   # Python backend project
-│   ├── README.md              # backend-local summary
-│   ├── pyproject.toml         # backend package metadata and tooling config
+├── server/                    # Python server project
+│   ├── README.md              # server-local summary
+│   ├── pyproject.toml         # server package metadata and tooling config
 │   ├── alembic.ini            # migration config
 │   ├── alembic/               # database migration environment + versions
 │   ├── app/                   # application source
@@ -69,8 +69,8 @@ budget-tracker/
 
 ## Project map
 
-### `backend/`
-Python backend service.
+### `server/`
+Python server service.
 
 Main responsibilities:
 - expose HTTP APIs through FastAPI
@@ -79,19 +79,19 @@ Main responsibilities:
 - run worker-side command application through Celery
 
 Key files:
-- `backend/app/main.py`
-- `backend/app/api/router.py`
-- `backend/app/services/transactions.py`
-- `backend/app/services/command_publisher.py`
-- `backend/app/worker/tasks/transactions.py`
-- `backend/app/core/config.py`
-- `backend/app/core/db.py`
+- `server/app/main.py`
+- `server/app/api/router.py`
+- `server/app/services/transactions.py`
+- `server/app/services/command_publisher.py`
+- `server/app/worker/tasks/transactions.py`
+- `server/app/core/config.py`
+- `server/app/core/db.py`
 
 ### `docs/`
 Support docs for contributors.
 
 Current content:
-- `docs/backend-setup.md` — backend local setup and command reference
+- `docs/server-setup.md` — server local setup and command reference
 
 ### `idea/`
 Product and architecture intent.
@@ -111,7 +111,7 @@ Current content:
 ### Root infra files
 - `docker-compose.yml` — local all-in-one stack
 - `Makefile` — root shortcuts for install, run, test, lint, typecheck, migrations, Docker startup
-- `docker/backend.Dockerfile` — backend container image definition
+- `docker/server.Dockerfile` — server container image definition
 
 ## Current architecture
 
@@ -127,7 +127,7 @@ client
            -> PostgreSQL     # applies create/update/delete commands
 ```
 
-## Layering inside `backend/app`
+## Layering inside `server/app`
 
 ```text
 api routes
@@ -174,15 +174,15 @@ Scaffold or placeholder today:
 - worker consumes command and applies newest valid operation to PostgreSQL
 
 Representative files:
-- `backend/app/api/routes/transactions.py`
-- `backend/app/services/transactions.py`
-- `backend/app/services/command_publisher.py`
-- `backend/app/worker/tasks/transactions.py`
-- `backend/app/worker/consumers/transaction_commands.py`
+- `server/app/api/routes/transactions.py`
+- `server/app/services/transactions.py`
+- `server/app/services/command_publisher.py`
+- `server/app/worker/tasks/transactions.py`
+- `server/app/worker/consumers/transaction_commands.py`
 
 ## Local development quick start
 
-## Backend-only local flow
+## Server-only local flow
 
 - Copy `.env.example` to `.env`
 - Use Python `3.11+`
@@ -209,7 +209,7 @@ Representative files:
 
 ## README structure guide
 
-This root README should stay repo-oriented, not backend-only.
+This root README should stay repo-oriented, not server-only.
 
 Recommended section order:
 1. project summary
@@ -228,8 +228,8 @@ Rules:
 - when a section becomes long, move details into `docs/` and leave a short summary + link here
 
 Good split of responsibility:
-- `README.md` — what this repo is, how it is laid out, how parts fit together
-- `backend/README.md` — backend package-specific details
+- `README.md` — repo summary only
+- `server/README.md` — server package-specific details
 - `docs/*.md` — setup guides, runbooks, contributor docs
 - `idea/*.md` — product/design intent and future architecture notes
 - `ops/` — runnable infra config, not prose documentation
@@ -264,7 +264,7 @@ Examples:
 - frontend or mobile app added
   - add it to the layout tree
   - add a project-map section for it
-  - update architecture with how it talks to backend
+  - update architecture with how it talks to server
 - shared package/library added
   - document why it exists and which projects consume it
 - auth stops being placeholder-only
@@ -278,19 +278,19 @@ Examples:
 
 Use these files when refreshing this README:
 - `README.md` — repo summary only
-- `docs/backend-setup.md` — current local backend setup
+- `docs/server-setup.md` — current local server setup
 - `idea/project_spec.md` — product/domain intent
-- `backend/app/main.py` — app entrypoint
-- `backend/app/api/router.py` — mounted route surface
-- `backend/app/core/config.py` — runtime config surface
-- `backend/app/worker/celery_app.py` — async runtime setup
+- `server/app/main.py` — app entrypoint
+- `server/app/api/router.py` — mounted route surface
+- `server/app/core/config.py` — runtime config surface
+- `server/app/worker/celery_app.py` — async runtime setup
 - `docker-compose.yml` — local service topology
 - `ops/k8s/` — deployment scaffold inventory
 
 ## Current summary
 
 Today this monorepo is best understood as:
-- one real backend project in `backend/`
+- one real server project in `server/`
 - shared repo-level docs in `docs/` and `idea/`
 - shared deployment scaffolding in `ops/`
 - root-level tooling that ties the whole stack together

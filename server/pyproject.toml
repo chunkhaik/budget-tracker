@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "budget-tracker-backend"
+name = "budget-tracker-server"
 version = "0.1.0"
-description = "Backend scaffold for the personal budget tracker project"
+description = "Server scaffold for the personal budget tracker project"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -1,9 +1,9 @@
-# Backend setup
+# Server setup
 
 ## Local development
 
 - Copy `.env.example` to `.env`
-- Create the local venv and install backend deps: `make install`
+- Create the local venv and install server deps: `make install`
 - This repo currently runs on Python `3.11+`
 - If Pylance still shows missing imports, select the repo interpreter at `.venv/bin/python`
 - Start infra only: `docker compose up -d postgres rabbitmq`
@@ -22,7 +22,7 @@
 
 - `python3 -m venv .venv`
 - `source .venv/bin/activate`
-- `cd backend && python -m pip install -e '.[dev]'`
+- `cd server && python -m pip install -e '.[dev]'`
 
 ## Docker stack
 
