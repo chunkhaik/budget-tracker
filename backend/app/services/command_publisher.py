@@ -20,7 +20,7 @@ class CommandPublisher:
             queue=settings.transaction_queue_name,
         )
         logger.info("published transaction create command", extra={"task_id": task.id})
-        return task.id
+        return str(task.id)
 
     def publish_update(self, command: TransactionUpdateCommand) -> str:
         task = celery_app.send_task(
@@ -29,7 +29,7 @@ class CommandPublisher:
             queue=settings.transaction_queue_name,
         )
         logger.info("published transaction update command", extra={"task_id": task.id})
-        return task.id
+        return str(task.id)
 
     def publish_delete(self, command: TransactionDeleteCommand) -> str:
         task = celery_app.send_task(
@@ -38,4 +38,4 @@ class CommandPublisher:
             queue=settings.transaction_queue_name,
         )
         logger.info("published transaction delete command", extra={"task_id": task.id})
-        return task.id
+        return str(task.id)

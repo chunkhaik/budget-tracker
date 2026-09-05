@@ -1,5 +1,7 @@
 import uuid
+from typing import Any, cast
 
+from app.models.transaction import Transaction
 from app.repos.transactions import TransactionRepository
 from app.schemas.commands import (
     TransactionCreateCommand,
@@ -10,10 +12,10 @@ from app.schemas.commands import (
 
 class FakeSession:
     def __init__(self) -> None:
-        self.added = []
+        self.added: list[Transaction] = []
         self.flush_count = 0
 
-    def add(self, obj) -> None:
+    def add(self, obj: Transaction) -> None:
         self.added.append(obj)
 
     def flush(self) -> None:
@@ -36,7 +38,7 @@ class StubTransaction:
         self.updated_at = 1725580800123
 
 
-class TestTransactionRepository(TransactionRepository):
+class StubTransactionRepository(TransactionRepository):
     def __init__(self, *, now_ms: int) -> None:
         super().__init__()
         self.now_ms = now_ms
@@ -77,8 +79,8 @@ def build_delete_command() -> TransactionDeleteCommand:
 
 
 def test_create_from_command_builds_new_transaction() -> None:
-    repo = TestTransactionRepository(now_ms=1725580800999)
-    session = FakeSession()
+    repo = StubTransactionRepository(now_ms=1725580800999)
+    session = cast(Any, FakeSession())
     command = build_create_command()
 
     transaction = repo.create_from_command(session, command)
@@ -100,9 +102,9 @@ def test_create_from_command_builds_new_transaction() -> None:
 
 
 def test_apply_create_overwrites_existing_transaction_state() -> None:
-    repo = TestTransactionRepository(now_ms=1725580800999)
-    session = FakeSession()
-    transaction = StubTransaction()
+    repo = StubTransactionRepository(now_ms=1725580800999)
+    session = cast(Any, FakeSession())
+    transaction = cast(Transaction, StubTransaction())
     command = build_create_command()
 
     updated = repo.apply_create(session, transaction, command)
@@ -123,9 +125,9 @@ def test_apply_create_overwrites_existing_transaction_state() -> None:
 
 
 def test_apply_update_changes_only_fields_present_in_command() -> None:
-    repo = TestTransactionRepository(now_ms=1725580800999)
-    session = FakeSession()
-    transaction = StubTransaction()
+    repo = StubTransactionRepository(now_ms=1725580800999)
+    session = cast(Any, FakeSession())
+    transaction = cast(Transaction, StubTransaction())
     original_category_id = transaction.category_id
     original_currency = transaction.currency
     original_transaction_at = transaction.transaction_at
@@ -146,8 +148,8 @@ def test_apply_update_changes_only_fields_present_in_command() -> None:
 
 
 def test_create_delete_tombstone_builds_deleted_transaction() -> None:
-    repo = TestTransactionRepository(now_ms=1725580800999)
-    session = FakeSession()
+    repo = StubTransactionRepository(now_ms=1725580800999)
+    session = cast(Any, FakeSession())
     command = build_delete_command()
 
     transaction = repo.create_delete_tombstone(session, command)
@@ -168,9 +170,9 @@ def test_create_delete_tombstone_builds_deleted_transaction() -> None:
 
 
 def test_apply_delete_marks_existing_transaction_deleted() -> None:
-    repo = TestTransactionRepository(now_ms=1725580800999)
-    session = FakeSession()
-    transaction = StubTransaction()
+    repo = StubTransactionRepository(now_ms=1725580800999)
+    session = cast(Any, FakeSession())
+    transaction = cast(Transaction, StubTransaction())
 
     updated = repo.apply_delete(session, transaction, build_delete_command())
 

@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Protocol
+from uuid import UUID
 
 from sqlmodel import Session
 
@@ -19,15 +20,18 @@ logger = logging.getLogger(__name__)
 consumer = TransactionCommandConsumer()
 repo = TransactionRepository()
 
-TransactionCommand = TypeVar("TransactionCommand")
+
+class TransactionCommandProtocol(Protocol):
+    transaction_id: UUID
+    operation_key: str
 
 
 def _apply_command(
     *,
     payload: dict,
-    load_command: Callable[[dict], TransactionCommand],
-    apply_when_missing: Callable[[Session, TransactionCommand], Transaction | None],
-    apply_when_present: Callable[[Session, Transaction, TransactionCommand], Transaction],
+    load_command: Callable[[dict], TransactionCommandProtocol],
+    apply_when_missing: Callable[[Session, TransactionCommandProtocol], Transaction | None],
+    apply_when_present: Callable[[Session, Transaction, TransactionCommandProtocol], Transaction],
 ) -> dict[str, str]:
     command = load_command(payload)
 
@@ -81,16 +85,40 @@ def _apply_command(
         }
 
 
-def _create_when_missing(session: Session, command: TransactionCreateCommand) -> Transaction:
-    return repo.create_from_command(session, command)
+def _create_when_missing(session: Session, command: TransactionCommandProtocol) -> Transaction:
+    return repo.create_from_command(session, TransactionCreateCommand.model_validate(command))
 
 
-def _update_when_missing(_: Session, __: TransactionUpdateCommand) -> None:
+def _update_when_missing(_: Session, __: TransactionCommandProtocol) -> None:
     return None
 
 
-def _delete_when_missing(session: Session, command: TransactionDeleteCommand) -> Transaction:
-    return repo.create_delete_tombstone(session, command)
+def _delete_when_missing(session: Session, command: TransactionCommandProtocol) -> Transaction:
+    return repo.create_delete_tombstone(session, TransactionDeleteCommand.model_validate(command))
+
+
+def _apply_create_when_present(
+    session: Session,
+    transaction: Transaction,
+    command: TransactionCommandProtocol,
+) -> Transaction:
+    return repo.apply_create(session, transaction, TransactionCreateCommand.model_validate(command))
+
+
+def _apply_update_when_present(
+    session: Session,
+    transaction: Transaction,
+    command: TransactionCommandProtocol,
+) -> Transaction:
+    return repo.apply_update(session, transaction, TransactionUpdateCommand.model_validate(command))
+
+
+def _apply_delete_when_present(
+    session: Session,
+    transaction: Transaction,
+    command: TransactionCommandProtocol,
+) -> Transaction:
+    return repo.apply_delete(session, transaction, TransactionDeleteCommand.model_validate(command))
 
 
 @celery_app.task(name="app.worker.tasks.transactions.handle_create_transaction")
@@ -99,7 +127,7 @@ def handle_create_transaction(*, payload: dict) -> dict[str, str]:
         payload=payload,
         load_command=consumer.load_create,
         apply_when_missing=_create_when_missing,
-        apply_when_present=repo.apply_create,
+        apply_when_present=_apply_create_when_present,
     )
 
 
@@ -109,7 +137,7 @@ def handle_update_transaction(*, payload: dict) -> dict[str, str]:
         payload=payload,
         load_command=consumer.load_update,
         apply_when_missing=_update_when_missing,
-        apply_when_present=repo.apply_update,
+        apply_when_present=_apply_update_when_present,
     )
 
 
@@ -119,5 +147,5 @@ def handle_delete_transaction(*, payload: dict) -> dict[str, str]:
         payload=payload,
         load_command=consumer.load_delete,
         apply_when_missing=_delete_when_missing,
-        apply_when_present=repo.apply_delete,
+        apply_when_present=_apply_delete_when_present,
     )

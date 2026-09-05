@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app.domain.enums import CategoryType
 from app.schemas.common import APIModel
 
@@ -8,4 +10,4 @@ class CategoryCreateRequest(APIModel):
 
 
 class CategoryRead(CategoryCreateRequest):
-    id: str
+    id: UUID

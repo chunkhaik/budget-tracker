@@ -1,25 +1,40 @@
-PYTHON ?= python3
+PYTHON ?= python3.11
 BACKEND_DIR := backend
+VENV_DIR := .venv
+VENV_PYTHON := $(VENV_DIR)/bin/python
+VENV_PIP := $(VENV_PYTHON) -m pip
+VENV_UVICORN := $(VENV_DIR)/bin/uvicorn
+VENV_CELERY := $(VENV_DIR)/bin/celery
+VENV_ALEMBIC := $(VENV_DIR)/bin/alembic
+VENV_MYPY := $(VENV_DIR)/bin/mypy
+VENV_PYTEST := $(VENV_DIR)/bin/pytest
 
-.PHONY: install run-api run-worker test lint migrate-up docker-up
+.PHONY: venv install run-api run-worker test lint typecheck migrate-up docker-up
 
-install:
-	cd $(BACKEND_DIR) && $(PYTHON) -m pip install -e .[dev]
+venv:
+	$(PYTHON) -m venv $(VENV_DIR)
+	$(VENV_PIP) install --upgrade pip
+	cd $(BACKEND_DIR) && ../$(VENV_PYTHON) -m pip install -e .[dev]
+
+install: venv
 
 run-api:
-	cd $(BACKEND_DIR) && uvicorn app.main:app --reload
+	cd $(BACKEND_DIR) && ../$(VENV_UVICORN) app.main:app --reload
 
 run-worker:
-	cd $(BACKEND_DIR) && celery -A app.worker.celery_app.celery_app worker --loglevel=info
+	cd $(BACKEND_DIR) && ../$(VENV_CELERY) -A app.worker.celery_app.celery_app worker --loglevel=info
 
 test:
-	cd $(BACKEND_DIR) && pytest
+	cd $(BACKEND_DIR) && ../$(VENV_PYTEST)
 
 lint:
-	cd $(BACKEND_DIR) && python -m compileall app tests
+	cd $(BACKEND_DIR) && ../$(VENV_PYTHON) -m compileall app tests
+
+typecheck:
+	cd $(BACKEND_DIR) && ../$(VENV_MYPY) app tests
 
 migrate-up:
-	cd $(BACKEND_DIR) && alembic upgrade head
+	cd $(BACKEND_DIR) && ../$(VENV_ALEMBIC) upgrade head
 
 docker-up:
 	docker compose up --build

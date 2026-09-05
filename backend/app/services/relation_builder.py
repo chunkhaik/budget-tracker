@@ -1,8 +1,10 @@
+from typing import Any
+
 from app.models.relation import WorkspaceRelation
 
 
 class RelationBuilder:
-    def build_preview(self, relation: WorkspaceRelation | None) -> dict[str, object]:
+    def build_preview(self, relation: WorkspaceRelation | None) -> dict[str, Any]:
         if relation is None:
             return {"items": [], "selection_mode": None}
 

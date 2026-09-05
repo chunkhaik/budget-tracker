@@ -1,5 +1,6 @@
 import time
-from uuid import uuid4
+from typing import Protocol
+from uuid import UUID, uuid4
 
 from app.core.security import CurrentUser
 from app.schemas.commands import (
@@ -12,8 +13,16 @@ from app.services.command_publisher import CommandPublisher
 from app.services.operation_keys import build_operation_key
 
 
+class TransactionPublisher(Protocol):
+    def publish_create(self, command: TransactionCreateCommand) -> str: ...
+
+    def publish_update(self, command: TransactionUpdateCommand) -> str: ...
+
+    def publish_delete(self, command: TransactionDeleteCommand) -> str: ...
+
+
 class TransactionCommandService:
-    def __init__(self, publisher: CommandPublisher | None = None) -> None:
+    def __init__(self, publisher: TransactionPublisher | None = None) -> None:
         self.publisher = publisher or CommandPublisher()
 
     def queue_create(self, current_user: CurrentUser, payload: TransactionCreateRequest) -> tuple[str, str]:
@@ -33,7 +42,7 @@ class TransactionCommandService:
     def queue_update(
         self,
         current_user: CurrentUser,
-        transaction_id: str,
+        transaction_id: UUID,
         payload: TransactionUpdateRequest,
     ) -> str:
         message_id = uuid4()
@@ -47,7 +56,7 @@ class TransactionCommandService:
         )
         return self.publisher.publish_update(command)
 
-    def queue_delete(self, current_user: CurrentUser, transaction_id: str) -> str:
+    def queue_delete(self, current_user: CurrentUser, transaction_id: UUID) -> str:
         message_id = uuid4()
         operation_key = build_operation_key(timestamp_ms=int(time.time() * 1000), message_id=message_id)
         command = TransactionDeleteCommand(

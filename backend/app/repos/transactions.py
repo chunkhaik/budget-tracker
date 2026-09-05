@@ -1,6 +1,8 @@
 import time
+from typing import Any, cast
 from uuid import UUID
 
+from sqlalchemy import desc
 from sqlmodel import Session, select
 
 from app.models.transaction import Transaction
@@ -16,16 +18,18 @@ class TransactionRepository:
         return int(time.time() * 1000)
 
     def list_for_user(self, session: Session, user_id: UUID) -> list[Transaction]:
+        transaction_model = cast(Any, Transaction)
         statement = (
             select(Transaction)
-            .where(Transaction.user_id == user_id)
-            .where(Transaction.deleted_at.is_(None))
-            .order_by(Transaction.transaction_at.desc())
+            .where(transaction_model.user_id == user_id)
+            .where(transaction_model.deleted_at.is_(None))
+            .order_by(desc(transaction_model.transaction_at))
         )
         return list(session.exec(statement))
 
     def get_by_public_id(self, session: Session, transaction_id: UUID) -> Transaction | None:
-        statement = select(Transaction).where(Transaction.transaction_id == transaction_id)
+        transaction_model = cast(Any, Transaction)
+        statement = select(Transaction).where(transaction_model.transaction_id == transaction_id)
         return session.exec(statement).first()
 
     def create_from_command(
