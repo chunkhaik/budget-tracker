@@ -5,11 +5,11 @@ from app.health.checks import build_health_payload
 router = APIRouter(tags=["health"])
 
 
-@router.get("/healthz")
-def healthz() -> dict[str, str]:
+@router.get("/health")
+def health() -> dict[str, str]:
     return build_health_payload(status="ok")
 
 
-@router.get("/readyz")
-def readyz() -> dict[str, str]:
-    return build_health_payload(status="ready")
+@router.get("/ping")
+def ready() -> dict[str, str]:
+    return build_health_payload(status="pong")
