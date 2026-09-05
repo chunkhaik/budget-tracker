@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: budget-tracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: budget-tracker-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["celery", "-A", "app.worker.celery_app.celery_app", "worker", "--loglevel=info"]
+          envFrom:
+            - configMapRef:
+                name: budget-tracker-config
+            - secretRef:
+                name: budget-tracker-secrets
