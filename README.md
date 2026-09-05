@@ -219,6 +219,14 @@ Important notes:
 - `make lint`
 - `make typecheck`
 - `make docker-up`
+- `make db-clear`
+- `make db-seed-test`
+- `make db-reset-test`
+
+Local DB reset for manual testing:
+- `docker compose up -d postgres`
+- `make migrate-up`
+- `make db-reset-test`
 
 ## README structure guide
 

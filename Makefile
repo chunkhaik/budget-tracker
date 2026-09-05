@@ -8,8 +8,14 @@ VENV_CELERY := $(VENV_DIR)/bin/celery
 VENV_ALEMBIC := $(VENV_DIR)/bin/alembic
 VENV_MYPY := $(VENV_DIR)/bin/mypy
 VENV_PYTEST := $(VENV_DIR)/bin/pytest
+POSTGRES_SERVICE := postgres
+POSTGRES_DB := budget_tracker
+POSTGRES_USER := postgres
+DOCKER_COMPOSE := docker compose
+PSQL := $(DOCKER_COMPOSE) exec -T $(POSTGRES_SERVICE) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+TEST_DATA_SQL := $(SERVER_DIR)/sql/test_data.sql
 
-.PHONY: venv install run-api run-worker test lint typecheck migrate-up docker-up
+.PHONY: venv install run-api run-worker test lint typecheck migrate-up docker-up db-clear db-seed-test db-reset-test
 
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
@@ -35,6 +41,14 @@ typecheck:
 
 migrate-up:
 	cd $(SERVER_DIR) && ../$(VENV_ALEMBIC) upgrade head
+
+db-clear:
+	$(PSQL) -c "TRUNCATE TABLE workspace_relation_transactions, workspace_relations, transactions, workspace_members, categories, workspaces, users RESTART IDENTITY CASCADE;"
+
+db-seed-test:
+	$(PSQL) < $(TEST_DATA_SQL)
+
+db-reset-test: db-clear db-seed-test
 
 docker-up:
 	docker compose up --build
