@@ -8,6 +8,7 @@ from sqlmodel import Session
 from app.core.db import engine
 from app.models.transaction import Transaction
 from app.repos.transactions import TransactionRepository
+from app.repos.users import UserRepository
 from app.schemas.commands import (
     TransactionCreateCommand,
     TransactionDeleteCommand,
@@ -19,11 +20,13 @@ from app.worker.consumers.transaction_commands import TransactionCommandConsumer
 logger = logging.getLogger(__name__)
 consumer = TransactionCommandConsumer()
 repo = TransactionRepository()
+user_repo = UserRepository()
 
 
 class TransactionCommandProtocol(Protocol):
     transaction_id: UUID
     operation_key: str
+    user_id: UUID
 
 
 def _apply_command(
@@ -53,6 +56,20 @@ def _apply_command(
             }
 
         if transaction is None:
+            if user_repo.get(session, command.user_id) is None:
+                logger.info(
+                    "ignored transaction command for missing user",
+                    extra={
+                        "transaction_id": str(command.transaction_id),
+                        "user_id": str(command.user_id),
+                        "operation_key": command.operation_key,
+                    },
+                )
+                return {
+                    "status": "ignored",
+                    "transaction_id": str(command.transaction_id),
+                }
+
             transaction = apply_when_missing(session, command)
             if transaction is None:
                 logger.info(

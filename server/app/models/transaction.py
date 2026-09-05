@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import BigInteger, Index, UniqueConstraint, text
+from sqlalchemy import BigInteger, Column, Index, Integer, UniqueConstraint, text
 from sqlmodel import Field, SQLModel
 
 
@@ -29,7 +29,10 @@ class Transaction(SQLModel, table=True):
         ),
     )
 
-    id: int | None = Field(default=None, primary_key=True, sa_type=BigInteger)
+    id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True),
+    )
     transaction_id: UUID = Field(nullable=False, unique=True)
     user_id: UUID = Field(foreign_key="users.id", nullable=False, index=True)
     category_id: UUID | None = Field(default=None, foreign_key="categories.id")

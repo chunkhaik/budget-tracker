@@ -16,3 +16,4 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=settings.broker_connection_retry_on_startup,
 )
 celery_app.autodiscover_tasks(["app.worker.tasks"])
+celery_app.conf.imports = ("app.worker.tasks.transactions",)

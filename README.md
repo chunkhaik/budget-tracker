@@ -184,14 +184,27 @@ Representative files:
 
 ## Server-only local flow
 
+Run from repo root.
+
+First-time setup:
 - Copy `.env.example` to `.env`
 - Use Python `3.11+`
 - Run `make install`
 - If your editor still misses imports, select `.venv/bin/python`
+
+Run order:
 - Start infra: `docker compose up -d postgres rabbitmq`
-- Run migrations: `make migrate-up`
+- Apply schema: `make migrate-up`
 - Start API: `make run-api`
 - Start worker: `make run-worker`
+
+If you change worker task registration code, restart the worker so Celery reloads task imports.
+
+Important notes:
+- if you skip `make migrate-up`, DB-backed endpoints fail because tables do not exist yet
+- local API routes are served from `http://localhost:8000`
+- transaction endpoints are under `/v1`, for example `http://localhost:8000/v1/transactions`
+- `http://localhost` is only for the full Docker stack with nginx
 
 ## Full local stack
 
