@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: budget-tracker-config
+  namespace: budget-tracker
+data:
+  APP_ENV: production
+  APP_NAME: budget-tracker
+  LOG_LEVEL: INFO
+  TRANSACTION_QUEUE_NAME: transaction_commands
+  DEFAULT_CURRENCY_CODE: USD

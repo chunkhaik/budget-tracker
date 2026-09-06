@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "budget-tracker-server"
+version = "0.1.0"
+description = "Server scaffold for the personal budget tracker project"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "alembic>=1.16.0",
+  "celery>=5.5.0",
+  "fastapi>=0.116.0",
+  "psycopg[binary]>=3.2.0",
+  "pydantic-settings>=2.10.0",
+  "sqlmodel>=0.0.24",
+  "uvicorn[standard]>=0.35.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28.0",
+  "mypy>=1.11.0",
+  "pytest>=8.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+no_implicit_optional = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+plugins = []
+files = ["app", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["celery.*", "sqlmodel.*"]
+ignore_missing_imports = true
