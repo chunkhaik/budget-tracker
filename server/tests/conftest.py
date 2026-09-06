@@ -16,6 +16,7 @@ from app.core.security import CurrentUser, build_dev_current_user
 from app.domain.enums import CategoryType, WorkspaceRole
 from app.main import app
 from app.models.category import Category
+from app.models.relation import WorkspaceRelation, WorkspaceRelationTransaction
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember
@@ -30,6 +31,8 @@ TEST_TABLES: list[Table] = [
     cast(Table, getattr(Workspace, "__table__")),
     cast(Table, getattr(WorkspaceMember, "__table__")),
     cast(Table, getattr(Transaction, "__table__")),
+    cast(Table, getattr(WorkspaceRelation, "__table__")),
+    cast(Table, getattr(WorkspaceRelationTransaction, "__table__")),
 ]
 
 
@@ -63,6 +66,10 @@ def current_user() -> CurrentUser:
 
 @pytest.fixture
 def user(db_session: Session, current_user: CurrentUser) -> User:
+    record = db_session.get(User, current_user.id)
+    if record is not None:
+        return record
+
     record = User(
         id=current_user.id,
         email=current_user.email,
@@ -91,6 +98,18 @@ def category(db_session: Session, user: User) -> Category:
         user_id=user.id,
         name="Food",
         type=CategoryType.EXPENSE,
+    )
+    db_session.add(record)
+    db_session.commit()
+    return record
+
+
+@pytest.fixture
+def other_user_category(db_session: Session, other_user: User) -> Category:
+    record = Category(
+        user_id=other_user.id,
+        name="Salary",
+        type=CategoryType.INCOME,
     )
     db_session.add(record)
     db_session.commit()
@@ -151,6 +170,16 @@ def transaction_factory(db_session: Session, user: User, category: Category) -> 
 
 @pytest.fixture
 def client(db_session: Session, current_user: CurrentUser) -> Iterator[TestClient]:
+    if db_session.get(User, current_user.id) is None:
+        db_session.add(
+            User(
+                id=current_user.id,
+                email=current_user.email,
+                display_name=current_user.display_name,
+            )
+        )
+        db_session.commit()
+
     def override_db_session() -> Iterator[Session]:
         yield db_session
 

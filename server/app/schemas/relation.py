@@ -1,12 +1,14 @@
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from app.domain.enums import RelationSelectionMode
 from app.schemas.common import APIModel
 
 
 class RelationRuleDefinition(APIModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     user_ids: list[UUID] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
     from_ts: int | None = Field(default=None, alias="from")
@@ -27,5 +29,16 @@ class RelationCreateRequest(APIModel):
     rule_definition: RelationRuleDefinition | None = None
 
 
-class RelationRead(RelationCreateRequest):
+class RelationUpdateRequest(APIModel):
+    name: str | None = None
+    description: str | None = None
+    selection_mode: RelationSelectionMode | None = None
+    rule_definition: RelationRuleDefinition | None = None
+
+
+class RelationRead(APIModel):
     id: UUID
+    name: str
+    description: str | None = None
+    selection_mode: RelationSelectionMode
+    rule_definition: RelationRuleDefinition | None = None

@@ -18,3 +18,9 @@ def test_validate_query_rejects_unsupported_group_by() -> None:
 def test_validate_query_requires_currency_for_mixed_currency_aggregation() -> None:
     with pytest.raises(AnalyticsQueryError, match="mixed-currency aggregation"):
         AnalyticsService().validate_query(AnalyticsQuery(group_by="category"))
+
+
+def test_validate_query_accepts_total_when_currency_is_supplied() -> None:
+    query = AnalyticsQuery(currency="USD")
+
+    assert AnalyticsService().validate_query(query) is query
